@@ -1,0 +1,19 @@
+{
+  "name": "CordovaViaLockSDK",
+  "version": "0.0.1",
+  "description": "CordovaSDK for ViaLock",
+  "cordova": {
+    "id": "cordova-vialock-sdk",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "author": "Viatick",
+  "license": "ISC"
+}
