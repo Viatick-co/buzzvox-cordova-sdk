@@ -44,7 +44,7 @@ https://github.com/krzyzanowskim/CryptoSwift
   };
 
  /*
-  * Connect and unlock the outset lock
+  * Connect and unlock the outset lock. After the lock was unlocked, the trip will be automatically started
   */
   $scope.unlockOutsetLock = function (accountId, bookingId) {
     cordova.plugins.CordovaViaLockSDK.unlockOutsetLock(accountId, bookingId, authKey)
@@ -56,19 +56,8 @@ https://github.com/krzyzanowskim/CryptoSwift
   };
 
  /*
-  * Start trip, should only triggered after the outset lock has been unlocked
-  */
-  $scope.startTrip = function (accountId, bookingId) {
-    cordova.plugins.CordovaViaLockSDK.startTrip(accountId, bookingId, authKey)
-    .then(function (success) {
-      console.info('cordova.plugins.CordovaViaLockSDK.startTrip()', 'Success');
-    }, function (error) {
-      console.error('cordova.plugins.CordovaViaLockSDK.startTrip()', error);
-    });
-  };
-
- /*
   * Connect and unlock the destination lock
+  * After the user closes the lock, the trip will be automatically ended
   */
   $scope.unlockDestinationLock = function (accountId, bookingId) {
     cordova.plugins.CordovaViaLockSDK.unlockDestinationLock(accountId, bookingId, authKey)
@@ -76,18 +65,6 @@ https://github.com/krzyzanowskim/CryptoSwift
       console.info('cordova.plugins.CordovaViaLockSDK.unlockDestinationLock()', 'Success');
     }, function (error) {
       console.error('cordova.plugins.CordovaViaLockSDK.unlockDestinationLock()', error);
-    });
-  };
-
- /*
-  * End trip, should only triggered after the destination lock has been unlocked
-  */
-  $scope.endTrip = function (accountId, bookingId) {
-    cordova.plugins.CordovaViaLockSDK.endTrip(accountId, bookingId, authKey)
-    .then(function (success) {
-      console.info('cordova.plugins.CordovaViaLockSDK.endTrip()', 'Success');
-    }, function (error) {
-      console.error('cordova.plugins.CordovaViaLockSDK.endTrip()', error);
     });
   };
 ```
