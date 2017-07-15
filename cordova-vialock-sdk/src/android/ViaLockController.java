@@ -524,7 +524,6 @@ public class ViaLockController extends CordovaPlugin {
     @TargetApi(Build.VERSION_CODES.M)
     public static void init(String mac, CallbackContext callbackContext, Activity activity) {
         cordovaActivity = activity;
-        mCallbackContext = callbackContext;
         lockUnlocked = false;
 
         try {
@@ -624,7 +623,6 @@ public class ViaLockController extends CordovaPlugin {
     }
 
     private static void openLockAction (final String mac, String keyString, CallbackContext callbackContext) throws IOException {
-        mCallbackContext = callbackContext;
         Log.i("MAC", mac);
         if (mLockDevice != null) {
             Log.i("LOCKDEVICE MACADDRESS", mLockDevice.getMacAddress());
@@ -1308,14 +1306,10 @@ public class ViaLockController extends CordovaPlugin {
             HTTPRequestHelper.endTrip(queue, new ViaInterfaces.ViaCallbackInterface() {
                 @Override
                 public void doWhenSuccess(JSONObject result) {
-                    try {
-                        mCallbackContext.success("Success");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, Value.MessageCode.COULD_NOT_END_TRIP);
-                        pluginResult.setKeepCallback(false);
-                        mCallbackContext.sendPluginResult(pluginResult);
-                    }
+                    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, "TRIP_ENDED");
+                    pluginResult.setKeepCallback(true);
+                    mCallbackContext.sendPluginResult(pluginResult);
+                    return;
                 }
 
                 @Override
@@ -1323,11 +1317,13 @@ public class ViaLockController extends CordovaPlugin {
                     PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, Value.MessageCode.COULD_NOT_END_TRIP);
                     pluginResult.setKeepCallback(false);
                     mCallbackContext.sendPluginResult(pluginResult);
+                    return;
                 }
             }, popScootUserId, popScootBookingId, popScootAuthKey);
         } else {
             // Lock device not in the macAddressLockHashMap anymore means that the lock isn't connected or not anymore
             mCallbackContext.error(Value.MessageCode.NOT_CLOSED);
+            return;
         }
     }
 
@@ -1478,6 +1474,8 @@ public class ViaLockController extends CordovaPlugin {
     }
 
     public static void unlockLockInitCheck(final long accountId, final long bookingId, final String authKey, final CallbackContext callbackContext, final Activity activity, final boolean isOutsetLock) {
+        mCallbackContext = callbackContext;
+
         if (masterSecret == null) {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                     Value.REQUEST_COARSE_LOCATION);

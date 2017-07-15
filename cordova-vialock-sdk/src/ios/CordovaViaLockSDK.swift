@@ -117,7 +117,7 @@ extension ViaLockPlugin: ViatickLockControllerDelegate {
         var pluginResult: CDVPluginResult?
         
         if isSuccess {
-            pluginResult = CDVPluginResult(status:CDVCommandStatus_OK, messageAs: "Success")
+            pluginResult = CDVPluginResult(status:CDVCommandStatus_OK, messageAs: "TRIP_ENDED")
         } else {
             pluginResult = CDVPluginResult(status:CDVCommandStatus_ERROR, messageAs: errorMessage)
         }
