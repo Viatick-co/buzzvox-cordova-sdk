@@ -254,6 +254,8 @@ class ViatickService {
         let jsonData = try? JSONSerialization.data(withJSONObject: json)
         
         print(request)
+        print(authKey)
+        print(accountId)
         request.httpMethod = "PUT"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue(authKey, forHTTPHeaderField: "Auth-Secret")
@@ -306,6 +308,10 @@ class ViatickLockController {
     weak var delegate: ViatickLockControllerDelegate?
     
     var bookingId: NSNumber = 0
+    var popscootBookingId: NSNumber = 0
+    var popscootUserId: NSNumber = 0
+    var popscootAuthKey: String = ""
+    var popscootIsOutsetLock: Bool = false
     var lockUnlocked: Bool = false
     
     func scanDevices() {
@@ -350,6 +356,11 @@ class ViatickLockController {
     }
     
     func getBookingInfo(accountId: NSNumber, bookingId: NSNumber, authKey: String, isOutsetLock: Bool, isUnlocking: Bool) {
+        self.popscootUserId = accountId
+        self.popscootBookingId = bookingId
+        self.popscootAuthKey = authKey
+        self.popscootIsOutsetLock = isOutsetLock
+        
         viatickService.delegate = self
         viatickService.getBookingInfo(accountId: accountId, bookingId: bookingId, authKey: authKey, isOutsetLock: isOutsetLock, isUnlocking: isUnlocking)
     }
@@ -416,6 +427,8 @@ extension ViatickLockController: SmartLockControllerDelegate {
         
         if !lockUnlocked {
             getLockKey(mac: lockDevice.macAddress)
+        } else if !self.popscootIsOutsetLock {
+                endTrip(mac: lockDevice.macAddress, userId: self.popscootUserId, bookingId: self.popscootBookingId, authKey: self.popscootAuthKey)
         }
     }
     
@@ -426,7 +439,11 @@ extension ViatickLockController: SmartLockControllerDelegate {
     func device(didOpen lockDevice: LockDevice) {
         lockUnlocked = true
 //        lockDevice.connected = false
-        delegate?.lockDevice(didOpenLock: lockDevice)
+        if (!popscootIsOutsetLock) {
+            delegate?.lockDevice(didOpenLock: lockDevice)
+        } else {
+            startTrip(mac: lockDevice.macAddress, userId: self.popscootUserId, bookingId: self.popscootBookingId, authKey: self.popscootAuthKey)
+        }
     }
     
     func device(didNotOpen lockDevice: LockDevice) {
@@ -469,27 +486,23 @@ extension ViatickLockController: ViatickServiceDelegate {
     
     func service(request: URLRequest, getBookingInfo lockId: NSNumber, buzzvoxUserId: NSNumber, buzzvoxBookingId: NSNumber, userId: NSNumber,
                  bookingId: NSNumber, authKey: String, isOutsetLock: Bool, isUnlocking: Bool) {
-        print("getBookingInfo", "success");
         getLockInfo(lockId: lockId, buzzvoxUserId: buzzvoxUserId, buzzvoxBookingId: buzzvoxBookingId, userId: userId, bookingId: bookingId, authKey: authKey,
                     isOutsetLock: isOutsetLock, isUnlocking: isUnlocking)
     }
     
     func service(request: URLRequest, getLockInfo mac: String, userId: NSNumber, bookingId: NSNumber, authKey: String, isOutsetLock: Bool, isUnlocking: Bool) {
-        print("getLockInfo", mac);
-        print("isUnlocking", isUnlocking)
-        print("isOutsetLock", isOutsetLock)
-        
         if isUnlocking {
             scanConnectDevice(mac: mac)
-        } else {
-            if isOutsetLock {
-                disconnect(mac: mac)
-                startTrip(mac: mac, userId: userId, bookingId: bookingId, authKey: authKey)
-            } else {
-                disconnect(mac: mac)
-                endTrip(mac: mac, userId: userId, bookingId: bookingId, authKey: authKey)
-            }
         }
+//        else {
+//            if isOutsetLock {
+//                disconnect(mac: mac)
+//                startTrip(mac: mac, userId: userId, bookingId: bookingId, authKey: authKey)
+//            } else {
+//                disconnect(mac: mac)
+//                endTrip(mac: mac, userId: userId, bookingId: bookingId, authKey: authKey)
+//            }
+//        }
     }
     
     func service(request: URLRequest, error message: String) {

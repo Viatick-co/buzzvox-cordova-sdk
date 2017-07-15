@@ -36,22 +36,22 @@ import Foundation
         delegateCallbackIdUnlock = command.callbackId
     }
     
-    func startTrip(_ command:CDVInvokedUrlCommand) {
-        let accountId: NSNumber = command.arguments[0] as! NSNumber
-        let bookingId: NSNumber = command.arguments[1] as! NSNumber
-        let authKey: String = command.arguments[2] as! String
-        
-        viatickLockController?.appInitCheck(accountId: accountId, bookingId: bookingId, authKey: authKey, isOutsetLock: true, isUnlocking: false)
-        delegateCallbackIdStartTrip = command.callbackId
-    }
-    
-    func endTrip(_ command:CDVInvokedUrlCommand) {
-        let accountId: NSNumber = command.arguments[0] as! NSNumber
-        let bookingId: NSNumber = command.arguments[1] as! NSNumber
-        let authKey: String = command.arguments[2] as! String
-        viatickLockController?.appInitCheck(accountId: accountId, bookingId: bookingId, authKey: authKey, isOutsetLock: false, isUnlocking: false)
-        delegateCallbackIdEndTrip = command.callbackId
-    }
+//    func startTrip(_ command:CDVInvokedUrlCommand) {
+//        let accountId: NSNumber = command.arguments[0] as! NSNumber
+//        let bookingId: NSNumber = command.arguments[1] as! NSNumber
+//        let authKey: String = command.arguments[2] as! String
+//        
+//        viatickLockController?.appInitCheck(accountId: accountId, bookingId: bookingId, authKey: authKey, isOutsetLock: true, isUnlocking: false)
+//        delegateCallbackIdStartTrip = command.callbackId
+//    }
+//    
+//    func endTrip(_ command:CDVInvokedUrlCommand) {
+//        let accountId: NSNumber = command.arguments[0] as! NSNumber
+//        let bookingId: NSNumber = command.arguments[1] as! NSNumber
+//        let authKey: String = command.arguments[2] as! String
+//        viatickLockController?.appInitCheck(accountId: accountId, bookingId: bookingId, authKey: authKey, isOutsetLock: false, isUnlocking: false)
+//        delegateCallbackIdEndTrip = command.callbackId
+//    }
 }
 
 extension ViaLockPlugin: ViatickLockControllerDelegate {
@@ -106,7 +106,9 @@ extension ViaLockPlugin: ViatickLockControllerDelegate {
         } else {
             pluginResult = CDVPluginResult(status:CDVCommandStatus_ERROR, messageAs: errorMessage)
         }
-        self.commandDelegate.send(pluginResult, callbackId: delegateCallbackIdStartTrip)
+        pluginResult?.setKeepCallbackAs(false)
+        
+        self.commandDelegate.send(pluginResult, callbackId: delegateCallbackIdUnlock)
     }
     
     func endTrip(isSuccess: Bool, errorMessage: String) {
@@ -119,6 +121,8 @@ extension ViaLockPlugin: ViatickLockControllerDelegate {
         } else {
             pluginResult = CDVPluginResult(status:CDVCommandStatus_ERROR, messageAs: errorMessage)
         }
-        self.commandDelegate.send(pluginResult, callbackId: delegateCallbackIdEndTrip)
+        pluginResult?.setKeepCallbackAs(false)
+        
+        self.commandDelegate.send(pluginResult, callbackId: delegateCallbackIdUnlock)
     }
 }

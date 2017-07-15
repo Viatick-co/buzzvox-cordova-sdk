@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class ViaLockController extends CordovaPlugin {
@@ -96,6 +97,10 @@ public class ViaLockController extends CordovaPlugin {
     private static String masterSecret;
     private static long buzzvoxBookingId;
     private static boolean lockUnlocked = false;
+    private static boolean mIsOutsetLock = false;
+    private static long popScootUserId;
+    private static long popScootBookingId;
+    private static String popScootAuthKey;
 
     // Various callback methods defined by the BLE API.
     private static final BluetoothGattCallback mGattCallback =
@@ -426,6 +431,10 @@ public class ViaLockController extends CordovaPlugin {
 
                             if (!lockUnlocked) {
                                 getLockKey(masterId, buzzvoxBookingId, mac, masterSecret, mCallbackContext, cordovaActivity);
+                            } else {
+                                if (!mIsOutsetLock) {
+                                    endTrip(lockDevice);
+                                }
                             }
                         } else {
                             mCallbackContext.error(Value.MessageCode.LOCK_VERIFY_FAIL);
@@ -476,7 +485,14 @@ public class ViaLockController extends CordovaPlugin {
 
 //                                    mConnectionState = Value.STATE_DISCONNECTED;
                             lockUnlocked = true;
-                            mCallbackContext.success(lockDevice.toString());
+
+                            if (mIsOutsetLock) {
+                                startTrip(lockDevice);
+                            } else {
+                                PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, "Success");
+                                pluginResult.setKeepCallback(true);
+                                mCallbackContext.sendPluginResult(pluginResult);
+                            }
                         } else {
                             mCallbackContext.error(Value.MessageCode.UNLOCK_FAIL);
                         }
@@ -1183,7 +1199,7 @@ public class ViaLockController extends CordovaPlugin {
                             try {
                                 if (result.getInt(Key.STATUS) == Value.ViaAPI.SUCCESS) {
                                     JSONObject data = result.getJSONObject(Key.DATA);
-                                    String macAddress = data.getString(Key.MAC);
+                                    final String macAddress = data.getString(Key.MAC);
 
                                     LockDevice lockDevice = macAddressLockHashMap.get(macAddress);
                                     if (lockDevice != null) {
@@ -1202,7 +1218,7 @@ public class ViaLockController extends CordovaPlugin {
                                                                 JSONObject data = result.getJSONObject(Key.DATA);
                                                                 callbackContext.success(data.getString(Key.TRIP_ID));
 
-                                                                disconnect(gatt);
+                                                                disconnectLock(macAddress);
                                                             } else {
                                                                 callbackContext.error(Value.MessageCode.COULD_NOT_START_TRIP);
                                                             }
@@ -1222,7 +1238,7 @@ public class ViaLockController extends CordovaPlugin {
                                                 // Lock isn't in the state "connected"
                                                 callbackContext.error(Value.MessageCode.NOT_CLOSED);
                                             }
-                                        }  else {
+                                        } else {
                                             // No gatt of the corresponding mac address means the lock isn't connected or not anymore
                                             callbackContext.error(Value.MessageCode.NOT_CLOSED);
                                         }
@@ -1243,7 +1259,7 @@ public class ViaLockController extends CordovaPlugin {
                         public void doWhenError(String error) {
                             callbackContext.error(error);
                         }
-                    },lockId,masterSecret);
+                    }, lockId, masterSecret);
                 } catch (Exception e) {
                     e.printStackTrace();
                     callbackContext.error(e.getMessage());
@@ -1255,6 +1271,64 @@ public class ViaLockController extends CordovaPlugin {
                 callbackContext.error(error);
             }
         }, accountId, bookingId, authKey);
+    }
+
+    /*
+     * Start trip automatically after unlock the outset lock
+     */
+    public static void startTrip (final LockDevice lockDevice) {
+        disconnectLock(lockDevice.getMacAddress());
+
+        HTTPRequestHelper.startTrip(queue, new ViaInterfaces.ViaCallbackInterface() {
+            @Override
+            public void doWhenSuccess(JSONObject result) {
+                try {
+                    mCallbackContext.success("Success");
+                    disconnectLock(lockDevice.getMacAddress());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    mCallbackContext.error(Value.MessageCode.COULD_NOT_START_TRIP);
+                }
+            }
+
+            @Override
+            public void doWhenError(String error) {
+                mCallbackContext.error(Value.MessageCode.COULD_NOT_START_TRIP);
+            }
+        }, popScootUserId, popScootBookingId, popScootAuthKey);
+    }
+
+    /*
+     * End trip automatically after unlock the destination lock
+     */
+    public static void endTrip (final LockDevice lockDevice) {
+        if (lockDevice != null) {
+            disconnectLock(lockDevice.getMacAddress());
+
+            HTTPRequestHelper.endTrip(queue, new ViaInterfaces.ViaCallbackInterface() {
+                @Override
+                public void doWhenSuccess(JSONObject result) {
+                    try {
+                        mCallbackContext.success("Success");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, Value.MessageCode.COULD_NOT_END_TRIP);
+                        pluginResult.setKeepCallback(false);
+                        mCallbackContext.sendPluginResult(pluginResult);
+                    }
+                }
+
+                @Override
+                public void doWhenError(String error) {
+                    PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, Value.MessageCode.COULD_NOT_END_TRIP);
+                    pluginResult.setKeepCallback(false);
+                    mCallbackContext.sendPluginResult(pluginResult);
+                }
+            }, popScootUserId, popScootBookingId, popScootAuthKey);
+        } else {
+            // Lock device not in the macAddressLockHashMap anymore means that the lock isn't connected or not anymore
+            mCallbackContext.error(Value.MessageCode.NOT_CLOSED);
+        }
     }
 
     public static void endTripInitCheck(final long accountId, final long bookingId, final String authKey, final CallbackContext callbackContext, final Activity activity) {
@@ -1304,7 +1378,7 @@ public class ViaLockController extends CordovaPlugin {
                             try {
                                 if (result.getInt(Key.STATUS) == Value.ViaAPI.SUCCESS) {
                                     JSONObject data = result.getJSONObject(Key.DATA);
-                                    String macAddress = data.getString(Key.MAC);
+                                    final String macAddress = data.getString(Key.MAC);
 
                                     LockDevice lockDevice = macAddressLockHashMap.get(macAddress);
                                     if (lockDevice != null) {
@@ -1323,7 +1397,7 @@ public class ViaLockController extends CordovaPlugin {
                                                                 JSONObject data = result.getJSONObject(Key.DATA);
                                                                 callbackContext.success(data.getString(Key.TRIP_ID));
 
-                                                                disconnect(gatt);
+                                                                disconnectLock(macAddress);
                                                             } else {
                                                                 callbackContext.error(Value.MessageCode.COULD_NOT_END_TRIP);
                                                             }
@@ -1433,6 +1507,11 @@ public class ViaLockController extends CordovaPlugin {
     }
 
     public static void unlockLock(long accountId, long bookingId, String authKey, final CallbackContext callbackContext, final Activity activity, final boolean isOutsetLock) {
+        mIsOutsetLock = isOutsetLock;
+        popScootUserId = accountId;
+        popScootBookingId = bookingId;
+        popScootAuthKey = authKey;
+
         HTTPRequestHelper.getBookingInfo(queue, new ViaInterfaces.ViaCallbackInterface() {
             @Override
             public void doWhenSuccess(JSONObject result) {
