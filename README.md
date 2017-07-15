@@ -63,6 +63,14 @@ https://github.com/krzyzanowskim/CryptoSwift
     cordova.plugins.CordovaViaLockSDK.unlockDestinationLock(accountId, bookingId, authKey)
     .then(function (success) {
       console.info('cordova.plugins.CordovaViaLockSDK.unlockDestinationLock()', 'Success');
+      
+      /*
+       * This is the second callback when the trip is ended
+       */
+      if (success == 'TRIP_ENDED') {
+        // Your logic
+      }
+      
     }, function (error) {
       console.error('cordova.plugins.CordovaViaLockSDK.unlockDestinationLock()', error);
     });
