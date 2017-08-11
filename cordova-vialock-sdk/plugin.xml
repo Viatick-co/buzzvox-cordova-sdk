@@ -21,7 +21,7 @@
     <source-file src="src/android/ViaLockController.java" target-dir="src/com/viatick/cordovavialocksdk" />
     <source-file src="src/android/BluetoothUuid.java" target-dir="src/com/viatick/cordovavialocksdk" />
     <source-file src="src/android/HTTPRequestHelper.java" target-dir="src/com/viatick/cordovavialocksdk" />
-    <source-file src="src/android/Key.java" target-disr="src/com/viatick/cordovavialocksdk" />
+    <source-file src="src/android/Key.java" target-dir="src/com/viatick/cordovavialocksdk" />
     <source-file src="src/android/LockDevice.java" target-dir="src/com/viatick/cordovavialocksdk" />
     <source-file src="src/android/SmartLockUtil.java" target-dir="src/com/viatick/cordovavialocksdk" />
     <source-file src="src/android/Value.java" target-dir="src/com/viatick/cordovavialocksdk" />
@@ -40,6 +40,6 @@
     <source-file src="src/ios/ViatickLockSDK.swift" />
     <source-file src="src/ios/SmartLockSDK.swift" />
     <dependency id="cordova-plugin-add-swift-support" version="1.6.1"/>
-    <framework src="src/ios/CryptoSwift/CryptoSwift.xcodeproj" custom="true" embed="true" />
+    <!-- <framework src="src/ios/CryptoSwift/CryptoSwift.xcodeproj" custom="true" embed="true" /> -->
   </platform>
 </plugin>
