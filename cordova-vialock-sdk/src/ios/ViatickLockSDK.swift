@@ -381,6 +381,10 @@ class ViatickLockController {
         smartLockController.disconnectDevice(mac: mac)
     }
     
+    func disconnectAll() {
+        smartLockController.disconnectAll()
+    }
+    
     func startTrip(mac: String, userId: NSNumber, bookingId: NSNumber, authKey: String) {
         let lockDevice = smartLockController.getLockDevice(mac: mac)
         
@@ -514,6 +518,7 @@ extension ViatickLockController: ViatickServiceDelegate {
     }
     
     func service(request: URLRequest, endTrip isSuccess: Bool, errorMessage: String) {
+        disconnectAll()
         delegate?.endTrip(isSuccess: isSuccess, errorMessage: errorMessage)
     }
 }
