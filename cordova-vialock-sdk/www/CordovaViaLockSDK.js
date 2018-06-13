@@ -1,13 +1,13 @@
 var exec = require('cordova/exec');
 
-exports.initiate = function (accountId, success, error) {
-	exec(success, error, "CordovaViaLockSDK", "initiate", [accountId]);
+exports.viaLockInit = function (mac, success, error) {
+	exec(success, error, "CordovaViaLockSDK", "viaLockInit", [mac]);
 };
 
-exports.unlockOutsetLock = function (accountId, bookingId, authKey, success, error) {
-	exec(success, error, "CordovaViaLockSDK", "unlockOutsetLock", [accountId, bookingId, authKey]);
+exports.viaLockOpen = function (accountId, bookingId, mac, authSecret, success, error) {
+	exec(success, error, "CordovaViaLockSDK", "viaLockOpen", [accountId, bookingId, mac, authSecret]);
 };
 
-exports.unlockDestinationLock = function (accountId, bookingId, authKey, success, error) {
-    exec(success, error, "CordovaViaLockSDK", "unlockDestinationLock", [accountId, bookingId, authKey]);
+exports.viaLockDisconnect = function (mac, success, error) {
+    exec(success, error, "CordovaViaLockSDK", "unlockDestinationLock", [mac]);
 };

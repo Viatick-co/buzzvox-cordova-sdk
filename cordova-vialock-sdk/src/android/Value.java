@@ -1,5 +1,6 @@
 package com.viatick.cordovavialocksdk;
 
+
 public class Value {
     public static final int STATE_DISCONNECTED = 0;       // we're doing nothing
     public static final int STATE_LISTEN = 1;     // now listening for incoming connections
@@ -7,17 +8,6 @@ public class Value {
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
     public static final int REQUEST_COARSE_LOCATION = 1;
     public static final long SCAN_PERIOD = 10000;
-
-    public static class MessageCode {
-        public static final String NOT_CLOSED = "The lock is not closed yet";
-        public static final String COULD_NOT_RETRIEVE_PASSWORD = "Could not retrieve lock password";
-        public static final String COULD_NOT_START_TRIP = "Could not start trip";
-        public static final String COULD_NOT_END_TRIP = "Could not end trip";
-        public static final String LOCK_VERIFY_FAIL = "Lock verification failed";
-        public static final String UNLOCK_FAIL = "Failed to unlock";
-        public static final String LOCK_ISNT_CONNECTED = "Lock isn't connected";
-        public static final String COULD_NOT_CONNECT = "Could not connect to the lock";
-    }
 
     public static class WriteStage {
         public static final int VIBRATE_REQUEST = 0;
@@ -55,9 +45,7 @@ public class Value {
     }
 
     public static final String VERIFY_PASSWORD = "741689";
-
-    public static final String BUZZVOX_API_DOMAIN = "https://buzzvox.co";
-    public static final String POPSCOOT_API_DOMAIN = "http://test.popscoot.com/popscoot/api";
+    public static final String END_POINT = "https://buzzvox.co";
     public static final String GET = "GET";
 
     public class ViaAPI {

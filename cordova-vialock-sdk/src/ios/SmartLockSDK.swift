@@ -291,25 +291,25 @@ extension LockDevice: CBPeripheralDelegate {
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         switch WRITE_STAGE {
-        case "verifyRequest":
-            self.verifyResponse()
+            case "verifyRequest":
+                self.verifyResponse()
             break
-        case "doubleVerifyRequest":
-            self.doubleVerifyResponse()
+            case "doubleVerifyRequest":
+                self.doubleVerifyResponse()
             break
-        case "unlockRequest":
-            self.unlockResponse()
+            case "unlockRequest":
+                self.unlockResponse()
             break
-        case "vibrateRequest":
-            self.vibrateResponse()
+            case "vibrateRequest":
+                self.vibrateResponse()
             break
-        case "changePasswordRequest":
-            self.changePasswordResponse()
+            case "changePasswordRequest":
+                self.changePasswordResponse()
             break
-        case "resetPasswordRequest":
-            self.resetPasswordResponse()
+            case "resetPasswordRequest":
+                self.resetPasswordResponse()
             break
-        default:
+            default:
             
             break
         }
@@ -386,18 +386,6 @@ class SmartLockController: NSObject {
         } else {
             delegate?.error(error: "Lock device not exist...")
         }
-    }
-    
-    func checkConnection(lockDevice: LockDevice) -> Bool {
-        let connectedPeripherals : [CBPeripheral] = cbcManager.retrieveConnectedPeripherals(withServices: [CBUUID(string: LockBLEStruct.pri_ser_uuid)])
-        for peripheral in connectedPeripherals {
-            print("peripheral identifier", peripheral.identifier.uuidString)
-            if (peripheral.identifier.uuidString == lockDevice.peripheral?.identifier.uuidString) {
-                return true
-            }
-        }
-        
-        return false
     }
     
     /**
@@ -569,15 +557,6 @@ class SmartLockController: NSObject {
         }
         return -1
     }
-    
-    func getLockDevice(mac: String) -> LockDevice? {
-        for ld in lockDevices {
-            if ld.macAddress == mac {
-                return ld
-            }
-        }
-        return nil
-    }
 }
 
 extension SmartLockController: CBCentralManagerDelegate {
@@ -610,13 +589,9 @@ extension SmartLockController: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         // Reconnect the device once it disconnect / disconnect means the lock open or no battery
-        print("isDisconnect", isDisconnect)
         if (!isDisconnect) {
             cbcManager.connect(peripheral, options: nil)
         }
-        
-        // After proceeding this disconnection, reset the value to false
-        isDisconnect = false
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -629,7 +604,6 @@ extension SmartLockController: LockDeviceDelegate {
         if state {
             print("mac address match")
         } else {
-            print("disconnecting device")
             self.disconnectDevice(lockDevice: lockDevice)
         }
     }

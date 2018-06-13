@@ -7,7 +7,7 @@
   <platform name="android">
     <config-file parent="/*" target="res/xml/config.xml">
       <feature name="CordovaViaLockSDK">
-        <param name="android-package" value="com.viatick.cordovavialocksdk.CordovaViaLockSDK" />
+        <param name="android-package" value="com.viatick.cordovavialocksdk.ViaLockController" />
         <param name="onload" value="true" />
       </feature>
     </config-file>
@@ -17,7 +17,11 @@
       <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
       <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     </config-file>
-    <source-file src="src/android/CordovaViaLockSDK.java" target-dir="src/com/viatick/cordovavialocksdk" />
+    <source-file src="src/android/LockCallback.java" target-dir="src/com/viatick/cordovavialocksdk" />
+    <source-file src="src/android/LockController.java" target-dir="src/com/viatick/cordovavialocksdk" />
+    <source-file src="src/android/LockCtrlCallback.java" target-dir="src/com/viatick/cordovavialocksdk" />
+    <source-file src="src/android/LockService.java" target-dir="src/com/viatick/cordovavialocksdk" />
+    <source-file src="src/android/LockUtil.java" target-dir="src/com/viatick/cordovavialocksdk" />
     <source-file src="src/android/ViaLockController.java" target-dir="src/com/viatick/cordovavialocksdk" />
     <source-file src="src/android/BluetoothUuid.java" target-dir="src/com/viatick/cordovavialocksdk" />
     <source-file src="src/android/HTTPRequestHelper.java" target-dir="src/com/viatick/cordovavialocksdk" />
@@ -32,11 +36,11 @@
   <platform name="ios">
     <config-file parent="/*" target="config.xml">
       <feature name="CordovaViaLockSDK">
-        <param name="ios-package" value="CordovaViaLockSDK" />
+        <param name="ios-package" value="ViaLockPlugin" />
         <param name="onload" value="true" />
       </feature>
     </config-file>
-    <source-file src="src/ios/CordovaViaLockSDK.swift" />
+    <source-file src="src/ios/ViaLockPlugin.swift" />
     <source-file src="src/ios/ViatickLockSDK.swift" />
     <source-file src="src/ios/SmartLockSDK.swift" />
     <dependency id="cordova-plugin-add-swift-support" version="1.6.1"/>

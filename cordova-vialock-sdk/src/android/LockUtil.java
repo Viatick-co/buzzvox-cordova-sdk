@@ -1,23 +1,21 @@
 package com.viatick.cordovavialocksdk;
 
-
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.util.Log;
-
+import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class SmartLockUtil {
-    private static final List<String> hexList = new ArrayList<String>(Arrays.asList("0", "1", "2", "3", "4" ,"5", "6", "7", "8", "9",
-            "a", "b", "c", "d", "e", "f"));
-//    private static final List<String> posiList = new ArrayList<String>(Arrays.asList("2", "3", "4" ,"5", "6", "7", "8", "9", "a"));
+/**
+ * Created by yaqing.bie on 12/12/17.
+ */
 
-    public static byte[] mergeByteArray (byte[]... byteArrays) {
+public class LockUtil {
+
+    private final List<String> hexList = new ArrayList<String>(Arrays.asList("0", "1", "2", "3", "4" ,"5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"));
+
+    public byte[] mergeByteArray (byte[]... byteArrays) {
         int totalLength = 0;
         for (byte[] byteArr: byteArrays) {
             totalLength += byteArr.length;
@@ -34,36 +32,7 @@ public class SmartLockUtil {
         return merged;
     }
 
-    public static short[] byteArrToshortArr (byte[] bytes) {
-        short[] shorts = new short[bytes.length/2];
-        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
-        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
-
-        return shorts;
-    }
-
-    public static byte[] shortArrToByteArr (short[] buffer) {
-        ByteBuffer byteBuf = ByteBuffer.allocate(2 * buffer.length);
-        for (short s: buffer) {
-            byteBuf.putShort(s);
-        }
-
-        return byteBuf.array();
-    }
-
-    public static byte[] toBytes(int i)
-    {
-        byte[] result = new byte[4];
-
-        result[0] = (byte) (i >> 24);
-        result[1] = (byte) (i >> 16);
-        result[2] = (byte) (i >> 8);
-        result[3] = (byte) (i /*>> 0*/);
-
-        return result;
-    }
-
-    public static HashMap<String, byte[]> get11Digits () {
+    public HashMap<String, byte[]> get11Digits () {
         // 4 position
         List<String> dyPosiList = new ArrayList<String>(Arrays.asList("2", "3", "4" ,"5", "6", "7", "8", "9", "a"));
         List<String> posiArr = new ArrayList<String>();
@@ -75,7 +44,6 @@ public class SmartLockUtil {
             dyPosiList.remove(rdmIdx);
             posiArr.add(val);
         }
-        Log.i("GET11DIGITS POSIARR", Arrays.toString(posiArr.toArray()));
 
         // 18 digits
         List<String> digitArr = new ArrayList<String>();
@@ -84,20 +52,17 @@ public class SmartLockUtil {
             int rdmIdx = (int) (Math.random() * hexList.size());
             digitArr.add(hexList.get(rdmIdx));
         }
-        Log.i("GET11DIGITS DIGITARR", Arrays.toString(digitArr.toArray()));
 
         byte[] oriMData = new byte[0];
         for (int i : new ArrayList<Integer>(Arrays.asList(0,2))) {
             String str = posiArr.get(i) +  posiArr.get(i+1);
             oriMData = mergeByteArray(oriMData, new byte[] {hexStringToHex(str)[0]});
         }
-        Log.i("GET11DIGITS ORIMDATA 1", Arrays.toString(oriMData));
 
         for (int i : new ArrayList<Integer>(Arrays.asList(0,2,4,6,8,10,12,14,16))) {
             String str = digitArr.get(i) +  digitArr.get(i+1);
             oriMData = mergeByteArray(oriMData, new byte[] {hexStringToHex(str)[0]});
         }
-        Log.i("GET11DIGITS ORIMDATA 2", Arrays.toString(oriMData));
 
         List<String> seedArr = new ArrayList<String>();
         List<Integer> digiPosiIdxArr = new ArrayList<Integer>(Arrays.asList(0,1,2,3,4,5,6,7,8));
@@ -106,47 +71,39 @@ public class SmartLockUtil {
             digiPosiIdxArr.remove(digiPosiIdxArr.indexOf(idx - 2));
             seedArr.add(digitArr.get((idx - 2) * 2) + digitArr.get((idx - 2) * 2 + 1));
         }
-        Log.i("SEEDARR", Arrays.toString(seedArr.toArray()));
 
         // get calculat number
         List<String> calNumArr = new ArrayList<String>();
         for (int i: digiPosiIdxArr) {
             calNumArr.add(digitArr.get(i * 2) + digitArr.get(i * 2 + 1));
         }
-        Log.i("CALNUMARR", Arrays.toString(calNumArr.toArray()));
 
         // crc16 calculation
         byte[] seedDigiMData = new byte[0];
         for (String i: seedArr) {
             byte[] hex = hexStringToHex(i);
-            Log.i("HEX", Arrays.toString(hex));
             seedDigiMData = mergeByteArray(seedDigiMData, new byte[] {hex[0]});
         }
-        Log.i("SEEDIGIMDATA", Arrays.toString(seedDigiMData));
 
         byte[] encyMData = new byte[0];
         for (String i: calNumArr) {
             byte[] crcDigiData = new byte[0];
             crcDigiData = mergeByteArray(crcDigiData, new byte[] {hexStringToHex(i)[0]});
             crcDigiData = mergeByteArray(crcDigiData, seedDigiMData);
-            Log.i("CRCDIGIDATA", Arrays.toString(crcDigiData));
 
             byte[] crc16DigiData = crc16(crcDigiData);
-//            byte[] crc16DigiData = calculate_crc(crcDigiData);
 
-            Log.i("CRC16DIGIDATA", Arrays.toString(crc16DigiData));
             encyMData = mergeByteArray(encyMData, crc16DigiData);
         }
-        Log.i("ENCYMDATA", Arrays.toString(encyMData));
 
         HashMap<String, byte[]> rtnDic = new HashMap<String, byte[]>();
-        rtnDic.put(Key.ORIMDATA, oriMData);
-        rtnDic.put(Key.ENCYMDATA, encyMData);
+        rtnDic.put(LockDevice.ORIMDATA, oriMData);
+        rtnDic.put(LockDevice.ENCYMDATA, encyMData);
 
         return rtnDic;
     }
 
-    public static HashMap<String, byte[]> get12Digits (byte[] dataArr) {
+    public HashMap<String, byte[]> get12Digits (byte[] dataArr) {
         // 4 position
         byte[] byteOri = new byte[] {dataArr[3], dataArr[4], dataArr[5], dataArr[6], dataArr[7],
                 dataArr[8], dataArr[10], dataArr[12], dataArr[14], dataArr[16], dataArr[18]};
@@ -166,13 +123,13 @@ public class SmartLockUtil {
         }
 
         HashMap<String, byte[]> rtnDic = new HashMap<String, byte[]>();
-        rtnDic.put(Key.ORIMDATA, oriMData);
-        rtnDic.put(Key.ENCYMDATA, encyMData);
+        rtnDic.put(LockDevice.ORIMDATA, oriMData);
+        rtnDic.put(LockDevice.ENCYMDATA, encyMData);
 
         return rtnDic;
     }
 
-    public static byte[] hexStringToHex(String hex){
+    public byte[] hexStringToHex(String hex) {
         byte[] hexByteArr = new byte[]{};
 
         for(int i=0; i< hex.length()-1; i+=2 ){
@@ -186,7 +143,7 @@ public class SmartLockUtil {
         return hexByteArr;
     }
 
-    public static byte[] crc16(byte[] bytes) {
+    public byte[] crc16(byte[] bytes) {
         int[] table = {
                 0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
                 0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
@@ -228,7 +185,6 @@ public class SmartLockUtil {
         }
 
         byte[] crcByteArr = BigInteger.valueOf(crc).toByteArray();
-//        return Integer.toHexString(crc).getBytes();
         if (crcByteArr.length >= 2) {
             return new byte[] {crcByteArr[crcByteArr.length - 2], crcByteArr[crcByteArr.length - 1]};
         } else {
@@ -236,28 +192,72 @@ public class SmartLockUtil {
         }
     }
 
-    /**
-     * @return Returns <b>true</b> if property is writable
-     */
-    public static boolean isCharacteristicWriteable(BluetoothGattCharacteristic pChar) {
-        return (pChar.getProperties() & (BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) != 0;
+    HashMap<String, byte[]> CRC16DIC = new HashMap<String, byte[]>();
+    public byte[] verifyRequestData () throws IOException {
+        LockUtil lockUtil = new LockUtil();
+        byte[] CONSTANT_1 = new byte[] {(byte) 0xa1};
+        byte[] password = LockDevice.VERIFY_PASSWORD.getBytes();
+        byte[] CONSTANT_2 = new byte[] {0x05};
+
+        byte[] mData = lockUtil.mergeByteArray(CONSTANT_1, password, CONSTANT_2);
+
+        CRC16DIC = lockUtil.get11Digits();
+        byte[] ori11MData = CRC16DIC.get(LockDevice.ORIMDATA);
+        mData = lockUtil.mergeByteArray(mData, ori11MData);
+
+        return mData;
     }
 
-    /**
-     * @return Returns <b>true</b> if property is Readable
-     */
-    public static boolean isCharacterisitcReadable(BluetoothGattCharacteristic pChar) {
-        return ((pChar.getProperties() & BluetoothGattCharacteristic.PROPERTY_READ) != 0);
+    public String verifyResponse (byte[] rtnData) throws IOException {
+        if (rtnData.length == 19 && rtnData[0] == (byte) 0xa2 && rtnData[1] == (byte) 0x05 && rtnData[2] == (byte) 0x00) {
+            byte[] macAddressData = Arrays.copyOfRange(rtnData, 3, 9);
+            String macAddress = this.bytesToHex(macAddressData);
+            byte[] subData = Arrays.copyOfRange(rtnData, 9, 19);
+            if (Arrays.equals(subData, CRC16DIC.get(LockDevice.ENCYMDATA))) {
+                return macAddress;
+            }
+        }
+        return null;
     }
 
-    /**
-     * @return Returns <b>true</b> if property is supports notification
-     */
-    public static boolean isCharacterisiticNotifiable(BluetoothGattCharacteristic pChar) {
-        return (pChar.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0;
+    public byte[] doubleVerifyRequestData (byte[] rtnData) throws IOException {
+        byte[] CONSTANT_1 = new byte[] {(byte) 0xa1};
+        byte[] password = LockDevice.VERIFY_PASSWORD.getBytes();
+        byte[] CONSTANT_2 = new byte[] {0x09};
+
+        byte[] mData = this.mergeByteArray(CONSTANT_1, password, CONSTANT_2);
+
+        HashMap<String, byte[]> dic = this.get12Digits(rtnData);
+        byte[] ency12MData = dic.get(LockDevice.ENCYMDATA);
+        mData = this.mergeByteArray(mData, ency12MData);
+        return mData;
     }
 
-    public static String bytesToHex(byte[] in) {
+    public boolean doubleVerifyResponse (byte[] rtnData) throws IOException {
+        if (rtnData.length == 3 && rtnData[0] == (byte) 0xa2 && rtnData[1] == (byte) 0x09 && rtnData[2] == (byte) 0x00) {
+            return true;
+        }
+        return false;
+    }
+
+    public byte[] unlockRequestData (String password) throws IOException {
+        byte[] CONSTANT_1 = new byte[] {(byte) 0xa1};
+        byte[] password_b = password.getBytes();
+        byte[] CONSTANT_2 = new byte[] {0x01};
+
+        byte[] data = mergeByteArray(CONSTANT_1, password_b, CONSTANT_2);
+
+        return data;
+    }
+
+    public boolean unlockResponse (byte[] rtnData) throws IOException {
+        if (rtnData.length == 3 && rtnData[0] == (byte) 0xa2 && rtnData[1] == (byte) 0x01 && rtnData[2] == (byte) 0x00) {
+            return true;
+        }
+        return false;
+    }
+
+    public String bytesToHex(byte[] in) {
         final StringBuilder builder = new StringBuilder();
         for(byte b : in) {
             builder.append(String.format("%02x", b));
