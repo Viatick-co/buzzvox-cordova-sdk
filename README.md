@@ -26,31 +26,32 @@ https://github.com/krzyzanowskim/CryptoSwift/issues/459
 
 ### Available methods
 
-```javascript
 1- viaLockInit: connect to the lock of a given mac address
+```javascript
 cordova.plugins.CordovaViaLockSDK.viaLockInit(macAddress,
-  function (success) {
-    // Do when success
-  }, function (error) {
-    // Do when error
+function (success) {
+  // Do when success
+}, function (error) {
+  // Do when error
 });
 ```
 
 2- viaLockOpen: unlock the lock
 ```javascript
-cordova.plugins.CordovaViaLockSDK.viaLockOpen(accountId, bookingId, macAddress, authSecret, function (success) {
-    // Do when success
-  }, function (error) {
-    // Do when error
+cordova.plugins.CordovaViaLockSDK.viaLockOpen(accountId, bookingId, macAddress, authSecret,
+function (success) {
+  // Do when success
+}, function (error) {
+  // Do when error
 });
 ```
 
 3- viaLockDisconnect: disconnect with the lock of a given mac address
 ```javascript
 cordova.plugins.CordovaViaLockSDK.viaLockDisconnect(macAddress,
-  function (success) {
-    // Do when success
-  }, function (error) {
-    // Do when error
+function (success) {
+  // Do when success
+}, function (error) {
+  // Do when error
 });
 ```
