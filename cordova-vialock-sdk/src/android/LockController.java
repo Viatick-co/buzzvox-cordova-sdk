@@ -92,14 +92,14 @@ public class LockController {
         }
     };
 
-    public void requestPermission(Activity activity, int permissionIdx) {
+    public boolean requestPermission(Activity activity, int permissionIdx) {
         this.activity = activity;
         if(ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, permissionIdx);
 
-            } else {
-                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, permissionIdx);
-            }
+            return false;
+        } else {
+            return true;
         }
     }
 

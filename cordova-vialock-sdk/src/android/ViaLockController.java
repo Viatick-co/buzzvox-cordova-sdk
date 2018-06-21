@@ -1,7 +1,9 @@
 package com.viatick.cordovavialocksdk;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Build;
 
 import com.android.volley.RequestQueue;
@@ -21,6 +23,9 @@ public class ViaLockController extends CordovaPlugin {
     private RequestQueue queue;
     private LockController lockController = new LockController();
 
+    private String initMac;
+    private CallbackContext initCallbackContext;
+
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -38,7 +43,13 @@ public class ViaLockController extends CordovaPlugin {
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 
         if (action.equals("viaLockInit")) {
-            lockController.connectLock(args.getString(0), callbackContext);
+            if (lockController.requestPermission(cordova.getActivity(), 1)) {
+                lockController.connectLock(args.getString(0), callbackContext);
+            } else {
+                initMac = args.getString(0);
+                initCallbackContext = callbackContext;
+            }
+
             return true;
         } else if (action.equals("viaLockOpen")) {
             getLockKey(args.getLong(0), args.getLong(1), args.getString(2), callbackContext, args.getString(3), lockController);
@@ -77,5 +88,25 @@ public class ViaLockController extends CordovaPlugin {
                 callbackContext.error(error);
             }
         }, userId, bookingId, mac, authKey);
+    }
+
+    @Override
+    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+        super.onRequestPermissionResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 1) {
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int grantResult = grantResults[i];
+
+                if (permission.equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                        lockController.connectLock(initMac, initCallbackContext);
+                    } else {
+                        initCallbackContext.error("Location Service Permission Was Denied");
+                    }
+                }
+            }
+        }
     }
 }

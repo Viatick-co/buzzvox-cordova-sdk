@@ -21,58 +21,36 @@ cordova plugin add cordova-vialock-sdk
 5 - For iOS, you need to import `Cryptoswift` as an embedded framework in your project based on the instruction here:
 https://github.com/krzyzanowskim/CryptoSwift
 
-### Sample Code
+> Noted: If the Swift version is 3.2 or below you should use CryptoSwift version 0.7.0. Use the latest version for Swift 4. More details here:
+https://github.com/krzyzanowskim/CryptoSwift/issues/459
+
+### Available methods
 
 ```javascript
-  /*
-   * Popscoot's Auth-Secret of the current user
-   */
-  var authKey = "_p11cf18gt9hoj11500000430883kcdova7s7i5c0sng"
+1- viaLockInit: connect to the lock of a given mac address
+cordova.plugins.CordovaViaLockSDK.viaLockInit(macAddress,
+  function (success) {
+    // Do when success
+  }, function (error) {
+    // Do when error
+});
+```
 
-  /*
-   * Initiate the SDK, accountId is required so should only be triggered for logged in user
-   */
-  $scope.initiate = function (accountId) {
-    console.info('initiate()','initiating...');
+2- viaLockOpen: unlock the lock
+```javascript
+cordova.plugins.CordovaViaLockSDK.viaLockOpen(accountId, bookingId, macAddress, authSecret, function (success) {
+    // Do when success
+  }, function (error) {
+    // Do when error
+});
+```
 
-    cordova.plugins.CordovaViaLockSDK.initiate(accountId)
-    .then(function () {
-      console.info('cordova.plugins.CordovaViaLockSDK.initiate()', 'success');
-    }, function (error) {
-      console.error('cordova.plugins.CordovaViaLockSDK.initiate()', error);
-    });
-  };
-
- /*
-  * Connect and unlock the outset lock. After the lock was unlocked, the trip will be automatically started
-  */
-  $scope.unlockOutsetLock = function (accountId, bookingId) {
-    cordova.plugins.CordovaViaLockSDK.unlockOutsetLock(accountId, bookingId, authKey)
-    .then(function (success) {
-      console.info('cordova.plugins.CordovaViaLockSDK.unlockOutsetLock()', 'Success');
-    }, function (error) {
-      console.error('cordova.plugins.CordovaViaLockSDK.unlockOutsetLock()', error);
-    });
-  };
-
- /*
-  * Connect and unlock the destination lock
-  * After the user closes the lock, the trip will be automatically ended
-  */
-  $scope.unlockDestinationLock = function (accountId, bookingId) {
-    cordova.plugins.CordovaViaLockSDK.unlockDestinationLock(accountId, bookingId, authKey)
-    .then(function (success) {
-      console.info('cordova.plugins.CordovaViaLockSDK.unlockDestinationLock()', 'Success');
-      
-      /*
-       * This is the second callback when the trip is ended
-       */
-      if (success == 'TRIP_ENDED') {
-        // Your logic
-      }
-      
-    }, function (error) {
-      console.error('cordova.plugins.CordovaViaLockSDK.unlockDestinationLock()', error);
-    });
-  };
+3- viaLockDisconnect: disconnect with the lock of a given mac address
+```javascript
+cordova.plugins.CordovaViaLockSDK.viaLockDisconnect(macAddress,
+  function (success) {
+    // Do when success
+  }, function (error) {
+    // Do when error
+});
 ```

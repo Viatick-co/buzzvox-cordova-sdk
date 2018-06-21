@@ -36,7 +36,7 @@
   <platform name="ios">
     <config-file parent="/*" target="config.xml">
       <feature name="CordovaViaLockSDK">
-        <param name="ios-package" value="ViaLockPlugin" />
+        <param name="ios-package" value="BVViaLockPlugin" />
         <param name="onload" value="true" />
       </feature>
     </config-file>
